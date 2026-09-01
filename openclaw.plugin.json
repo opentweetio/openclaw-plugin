@@ -1,0 +1,49 @@
+{
+  "id": "opentweet",
+  "name": "OpenTweet",
+  "description": "Schedule and publish X posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
+  "version": "0.1.0",
+  "icon": "https://opentweet.io/logo_transparent_black.png",
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "opentweet_accounts",
+      "opentweet_post",
+      "opentweet_list_posts",
+      "opentweet_update_post",
+      "opentweet_upload_media",
+      "opentweet_analytics",
+      "opentweet_article",
+      "opentweet_search_inspiration",
+      "opentweet_repurpose_tweet"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["apiKey"],
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys"
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "OpenTweet base URL. Only change this for self-hosted instances."
+      }
+    }
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "API key",
+      "placeholder": "ot_...",
+      "sensitive": true
+    },
+    "baseUrl": {
+      "label": "Base URL",
+      "placeholder": "https://opentweet.io"
+    }
+  }
+}

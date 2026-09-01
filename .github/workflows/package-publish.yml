@@ -1,0 +1,33 @@
+name: Publish to ClawHub
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+
+      - run: npm install
+
+      - run: npm run build
+
+      - run: npm run manifest:check
+
+      - run: npm i -g clawhub
+
+      - run: clawhub package publish . --dry-run --json
+
+      - run: clawhub package publish . --json

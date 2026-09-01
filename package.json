@@ -1,0 +1,63 @@
+{
+  "name": "@opentweetio/openclaw-plugin",
+  "version": "0.1.0",
+  "description": "Schedule and publish X posts, threads and articles from OpenClaw using OpenTweet.",
+  "type": "module",
+  "license": "MIT",
+  "author": "OpenTweet <hello@opentweet.io>",
+  "homepage": "https://opentweet.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opentweetio/openclaw-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/opentweetio/openclaw-plugin/issues"
+  },
+  "keywords": [
+    "openclaw",
+    "openclaw-plugin",
+    "opentweet",
+    "twitter",
+    "x",
+    "scheduling",
+    "social-media"
+  ],
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "manifest": "openclaw plugins build --entry ./dist/index.js",
+    "manifest:check": "openclaw plugins build --entry ./dist/index.js --check",
+    "validate": "openclaw plugins validate --entry ./dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "typebox": "^1.1.38"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "openclaw": "2026.8.1",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22.22.3 <23 || >=24.15.0 <25 || >=25.9.0"
+  },
+  "openclaw": {
+    "extensions": ["./dist/index.js"],
+    "compat": {
+      "pluginApi": ">=2026.8.1",
+      "minGatewayVersion": "2026.8.1"
+    },
+    "build": {
+      "openclawVersion": "2026.8.1",
+      "pluginSdkVersion": "2026.8.1"
+    }
+  }
+}
