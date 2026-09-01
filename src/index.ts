@@ -7,16 +7,19 @@ import type { Article, InspirationTweet, Post } from './types.js';
 
 const DEFAULT_BASE_URL = 'https://opentweet.io';
 
-const configSchema = Type.Object({
-  apiKey: Type.String({
-    description: 'OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys',
-  }),
-  baseUrl: Type.Optional(
-    Type.String({
-      description: 'OpenTweet base URL. Only change this for self-hosted instances.',
-    })
-  ),
-});
+const configSchema = Type.Object(
+  {
+    apiKey: Type.String({
+      description: 'OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys',
+    }),
+    baseUrl: Type.Optional(
+      Type.String({
+        description: 'OpenTweet base URL. Only change this for self-hosted instances.',
+      })
+    ),
+  },
+  { additionalProperties: false }
+);
 
 type Config = {
   apiKey: string;

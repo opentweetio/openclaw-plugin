@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: "24.15.0"
 
-      - run: npm install
+      - run: npm ci
 
       - run: npm run build
 

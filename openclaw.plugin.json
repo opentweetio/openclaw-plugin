@@ -7,6 +7,34 @@
   "activation": {
     "onStartup": true
   },
+  "configSchema": {
+    "type": "object",
+    "required": [
+      "apiKey"
+    ],
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys"
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "OpenTweet base URL. Only change this for self-hosted instances."
+      }
+    },
+    "additionalProperties": false
+  },
+  "uiHints": {
+    "apiKey": {
+      "label": "API key",
+      "placeholder": "ot_...",
+      "sensitive": true
+    },
+    "baseUrl": {
+      "label": "Base URL",
+      "placeholder": "https://opentweet.io"
+    }
+  },
   "contracts": {
     "tools": [
       "opentweet_accounts",
@@ -19,31 +47,5 @@
       "opentweet_search_inspiration",
       "opentweet_repurpose_tweet"
     ]
-  },
-  "configSchema": {
-    "type": "object",
-    "additionalProperties": false,
-    "required": ["apiKey"],
-    "properties": {
-      "apiKey": {
-        "type": "string",
-        "description": "OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys"
-      },
-      "baseUrl": {
-        "type": "string",
-        "description": "OpenTweet base URL. Only change this for self-hosted instances."
-      }
-    }
-  },
-  "uiHints": {
-    "apiKey": {
-      "label": "API key",
-      "placeholder": "ot_...",
-      "sensitive": true
-    },
-    "baseUrl": {
-      "label": "Base URL",
-      "placeholder": "https://opentweet.io"
-    }
   }
 }
