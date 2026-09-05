@@ -13,6 +13,18 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export type PlatformId = 'x' | 'bluesky';
+
+/** Per-network outcome of a publish. `skipped` is not a failure. */
+export interface PostResult {
+  platform: PlatformId;
+  status: 'published' | 'failed' | 'skipped';
+  url?: string | null;
+  error?: string;
+  skipReason?: string;
+  skip_reason?: string;
+}
+
 export interface Post {
   id: string;
   status: 'draft' | 'scheduled' | 'posted' | 'failed';
@@ -29,8 +41,103 @@ export interface Post {
   x_post_id?: string;
   x_account_id?: string | null;
   url?: string | null;
+  platforms?: PlatformId[];
+  results?: PostResult[];
   created_at: string;
   updated_at?: string;
+}
+
+export interface PlatformAccountInfo {
+  account_id: string;
+  handle: string;
+  display_name?: string;
+  is_primary: boolean;
+  /** This one account is dead even when the platform as a whole is usable. */
+  disconnected: boolean;
+}
+
+export interface PlatformLimitsInfo {
+  max_text_length?: number;
+  text_unit?: string;
+  max_images?: number;
+  max_videos?: number;
+  max_thread_parts?: number;
+}
+
+/**
+ * `connected` means an account row exists. `usable` means we believe we can
+ * publish right now. A dead grant is connected but not usable, so both travel.
+ */
+export interface PlatformStatus {
+  platform: PlatformId;
+  label?: string;
+  connected: boolean;
+  usable: boolean;
+  needs_reconnect: boolean;
+  accounts: PlatformAccountInfo[];
+  limits?: PlatformLimitsInfo;
+}
+
+/**
+ * `default_targets` is where a post that omits `platforms` is ATTEMPTED.
+ * `deliverable_targets` is the subset that will actually land. An unusable
+ * platform stays in `default_targets` on purpose so it fails visibly.
+ */
+export interface PlatformsStatus {
+  auto_cross_post: boolean;
+  default_targets: PlatformId[];
+  deliverable_targets: PlatformId[];
+  platforms: PlatformStatus[];
+}
+
+/**
+ * The wire shape. The API emits snake_case, and every key is read under a
+ * camelCase twin as well so a casing change upstream cannot silently turn a
+ * missing field into a wrong answer.
+ */
+export interface RawPlatformAccountInfo {
+  account_id?: string;
+  accountId?: string;
+  handle?: string;
+  display_name?: string;
+  displayName?: string;
+  is_primary?: boolean;
+  isPrimary?: boolean;
+  disconnected?: boolean;
+}
+
+export interface RawPlatformLimitsInfo {
+  max_text_length?: number;
+  maxTextLength?: number;
+  text_unit?: string;
+  textUnit?: string;
+  max_images?: number;
+  maxImages?: number;
+  max_videos?: number;
+  maxVideos?: number;
+  max_thread_parts?: number;
+  maxThreadParts?: number;
+}
+
+export interface RawPlatformStatus {
+  platform: PlatformId;
+  label?: string;
+  connected?: boolean;
+  usable?: boolean;
+  needs_reconnect?: boolean;
+  needsReconnect?: boolean;
+  accounts?: RawPlatformAccountInfo[];
+  limits?: RawPlatformLimitsInfo | null;
+}
+
+export interface RawPlatformsStatus {
+  auto_cross_post?: boolean;
+  autoCrossPost?: boolean;
+  default_targets?: PlatformId[];
+  defaultTargets?: PlatformId[];
+  deliverable_targets?: PlatformId[];
+  deliverableTargets?: PlatformId[];
+  platforms?: RawPlatformStatus[];
 }
 
 export interface XAccountInfo {

@@ -1,7 +1,7 @@
 {
   "id": "opentweet",
   "name": "OpenTweet",
-  "description": "Schedule and publish X posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
+  "description": "Schedule and publish X and Bluesky posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
   "version": "0.1.0",
   "icon": "https://opentweet.io/logo_transparent_black.png",
   "activation": {
@@ -38,6 +38,7 @@
   "contracts": {
     "tools": [
       "opentweet_accounts",
+      "opentweet_list_platforms",
       "opentweet_post",
       "opentweet_list_posts",
       "opentweet_update_post",

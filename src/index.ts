@@ -3,7 +3,7 @@ import { basename, extname } from 'node:path';
 import { Type } from 'typebox';
 import { defineToolPlugin } from 'openclaw/plugin-sdk/tool-plugin';
 import { OpenTweetClient } from './api-client.js';
-import type { Article, InspirationTweet, Post } from './types.js';
+import type { Article, InspirationTweet, PlatformsStatus, Post, RawPlatformsStatus } from './types.js';
 
 const DEFAULT_BASE_URL = 'https://opentweet.io';
 
@@ -48,6 +48,21 @@ const PostSummary = Type.Object(
     posted_date: Type.Optional(Type.String()),
     url: Type.Optional(Type.String()),
     x_account_id: Type.Optional(Type.String()),
+    platforms: Type.Optional(Type.Array(Type.String())),
+    results: Type.Optional(
+      Type.Array(
+        Type.Object(
+          {
+            platform: Type.String(),
+            status: Type.String(),
+            url: Type.Optional(Type.String()),
+            error: Type.Optional(Type.String()),
+            skip_reason: Type.Optional(Type.String()),
+          },
+          { additionalProperties: false }
+        )
+      )
+    ),
   },
   { additionalProperties: false }
 );
@@ -62,6 +77,54 @@ function summarizePost(post: Post) {
     posted_date: post.posted_date ?? undefined,
     url: post.url ?? undefined,
     x_account_id: post.x_account_id ?? undefined,
+    platforms: post.platforms ?? undefined,
+    results: post.results?.map((r) => ({
+      platform: r.platform,
+      status: r.status,
+      url: r.url ?? undefined,
+      error: r.error,
+      skip_reason: r.skipReason ?? r.skip_reason,
+    })),
+  };
+}
+
+/**
+ * Folds the wire response into the canonical snake_case shape, reading every key
+ * under both casings. A missing `usable` falls back to `connected` rather than
+ * to false, so an older server still reports a working network as working.
+ */
+function normalizePlatforms(raw: RawPlatformsStatus): PlatformsStatus {
+  return {
+    auto_cross_post: raw.auto_cross_post ?? raw.autoCrossPost ?? false,
+    default_targets: raw.default_targets ?? raw.defaultTargets ?? [],
+    deliverable_targets: raw.deliverable_targets ?? raw.deliverableTargets ?? [],
+    platforms: (raw.platforms ?? []).map((p) => {
+      const connected = p.connected ?? false;
+      const l = p.limits;
+      return {
+        platform: p.platform,
+        label: p.label,
+        connected,
+        usable: p.usable ?? connected,
+        needs_reconnect: p.needs_reconnect ?? p.needsReconnect ?? false,
+        accounts: (p.accounts ?? []).map((a) => ({
+          account_id: a.account_id ?? a.accountId ?? '',
+          handle: a.handle ?? '',
+          display_name: a.display_name ?? a.displayName,
+          is_primary: a.is_primary ?? a.isPrimary ?? false,
+          disconnected: a.disconnected ?? false,
+        })),
+        limits: l
+          ? {
+              max_text_length: l.max_text_length ?? l.maxTextLength,
+              text_unit: l.text_unit ?? l.textUnit,
+              max_images: l.max_images ?? l.maxImages,
+              max_videos: l.max_videos ?? l.maxVideos,
+              max_thread_parts: l.max_thread_parts ?? l.maxThreadParts,
+            }
+          : undefined,
+      };
+    }),
   };
 }
 
@@ -112,7 +175,7 @@ export default defineToolPlugin({
   id: 'opentweet',
   name: 'OpenTweet',
   description:
-    'Schedule and publish X posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.',
+    'Schedule and publish X and Bluesky posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.',
   configSchema,
   tools: (tool) => [
     tool({
@@ -173,10 +236,89 @@ export default defineToolPlugin({
     }),
 
     tool({
+      name: 'opentweet_list_platforms',
+      label: 'OpenTweet Platforms',
+      description:
+        'Show cross-posting state: which networks are connected, which can actually publish right now, whether auto cross-post is on, and where a post that omits the platforms parameter would go. Reports both what such a post is attempted on (default_targets) and the subset that will actually land (deliverable_targets). Call this before posting when the user has not said which network they mean. Read connected and usable separately: a network whose authorisation died is still connected but cannot publish.',
+      parameters: Type.Object({}),
+      outputSchema: Type.Object(
+        {
+          auto_cross_post: Type.Boolean(),
+          default_targets: Type.Array(Type.String(), {
+            description: 'Networks a post that omits platforms is attempted on.',
+          }),
+          deliverable_targets: Type.Array(Type.String(), {
+            description:
+              'The subset of default_targets that will actually land. Anything in default_targets but not here is attempted and expected to fail, which is deliberate so the failure is recorded rather than silently dropped.',
+          }),
+          platforms: Type.Array(
+            Type.Object(
+              {
+                platform: Type.String(),
+                label: Type.Optional(Type.String()),
+                connected: Type.Boolean(),
+                usable: Type.Boolean(),
+                needs_reconnect: Type.Optional(Type.Boolean()),
+                accounts: Type.Optional(
+                  Type.Array(
+                    Type.Object(
+                      {
+                        account_id: Type.String(),
+                        handle: Type.String(),
+                        display_name: Type.Optional(Type.String()),
+                        is_primary: Type.Optional(Type.Boolean()),
+                        disconnected: Type.Optional(Type.Boolean()),
+                      },
+                      { additionalProperties: false }
+                    )
+                  )
+                ),
+                limits: Type.Optional(
+                  Type.Object(
+                    {
+                      max_text_length: Type.Optional(Type.Number()),
+                      text_unit: Type.Optional(Type.String()),
+                      max_images: Type.Optional(Type.Number()),
+                      max_videos: Type.Optional(Type.Number()),
+                      max_thread_parts: Type.Optional(Type.Number()),
+                    },
+                    { additionalProperties: false }
+                  )
+                ),
+              },
+              { additionalProperties: false }
+            )
+          ),
+        },
+        { additionalProperties: false }
+      ),
+      async execute(_params, config: Config, context) {
+        context.signal?.throwIfAborted();
+        const client = createClient(config);
+        const data = normalizePlatforms(await client.getCrossPosting(context.signal));
+
+        return {
+          auto_cross_post: data.auto_cross_post,
+          default_targets: data.default_targets,
+          deliverable_targets: data.deliverable_targets,
+          platforms: data.platforms.map((p) => ({
+            platform: p.platform,
+            label: p.label,
+            connected: p.connected,
+            usable: p.usable,
+            needs_reconnect: p.needs_reconnect,
+            accounts: p.accounts,
+            limits: p.limits,
+          })),
+        };
+      },
+    }),
+
+    tool({
       name: 'opentweet_post',
       label: 'OpenTweet Post',
       description:
-        'Create a single X post or a thread. Publishes immediately when publish_now is true, schedules it when scheduled_date is set, and otherwise saves a draft. Pass thread_tweets to create a thread, where text is the first tweet.',
+        'Create a single post or a thread. Publishes immediately when publish_now is true, schedules it when scheduled_date is set, and otherwise saves a draft. Pass thread_tweets to create a thread, where text is the first tweet. Use platforms to cross-post the same content to X and Bluesky in one call. Omitting platforms hands targeting to the account auto cross-post setting rather than pinning the post to X, so call opentweet_list_platforms first when that matters.',
       parameters: Type.Object({
         text: Type.String({ description: 'The post text, or the first tweet of a thread.' }),
         thread_tweets: Type.Optional(
@@ -188,7 +330,7 @@ export default defineToolPlugin({
           Type.String({ description: 'ISO 8601 datetime to publish at, for example 2026-09-01T14:30:00Z.' })
         ),
         publish_now: Type.Optional(
-          Type.Boolean({ description: 'Publish to X immediately instead of scheduling. Defaults to false.' })
+          Type.Boolean({ description: 'Publish immediately instead of scheduling. Defaults to false.' })
         ),
         media_urls: Type.Optional(
           Type.Array(Type.String(), {
@@ -198,6 +340,12 @@ export default defineToolPlugin({
         category: Type.Optional(Type.String({ description: 'Content category label.' })),
         x_account_id: Type.Optional(
           Type.String({ description: 'Target X account id from opentweet_accounts, for multi-account users.' })
+        ),
+        platforms: Type.Optional(
+          Type.Array(Type.Union([Type.Literal('x'), Type.Literal('bluesky')]), {
+            description:
+              'Networks to post to. Pass ["x", "bluesky"] to publish the same content to both in one call, or any non-empty subset such as ["bluesky"]. An explicit list is always honoured exactly. Leaving this out is not the same as pinning to X: the post then follows the account auto cross-post setting, which sends it to every connected network when that setting is on. A network the user has not connected comes back as skipped rather than failing the call.',
+          })
         ),
       }),
       outputSchema: Type.Object(
@@ -223,6 +371,7 @@ export default defineToolPlugin({
             media_urls: params.media_urls,
             publish_now: params.publish_now,
             x_account_id: params.x_account_id,
+            platforms: params.platforms,
           },
           context.signal
         );

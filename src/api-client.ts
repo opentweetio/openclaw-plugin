@@ -2,8 +2,10 @@ import type {
   AccountStatus,
   AnalyticsOverview,
   Article,
+  RawPlatformsStatus,
   OpenTweetConfig,
   PaginatedResponse,
+  PlatformId,
   Post,
   UploadResponse,
   XAccountInfo,
@@ -73,6 +75,10 @@ export class OpenTweetClient {
     return this.request<{ accounts: XAccountInfo[] }>('GET', '/accounts', undefined, signal);
   }
 
+  async getCrossPosting(signal?: AbortSignal): Promise<RawPlatformsStatus> {
+    return this.request<RawPlatformsStatus>('GET', '/cross-posting', undefined, signal);
+  }
+
   // Posts
 
   async listPosts(
@@ -101,6 +107,7 @@ export class OpenTweetClient {
       media_urls?: string[];
       publish_now?: boolean;
       x_account_id?: string;
+      platforms?: PlatformId[];
     },
     signal?: AbortSignal
   ): Promise<{ success: boolean; count: number; posts: Post[]; message?: string }> {
