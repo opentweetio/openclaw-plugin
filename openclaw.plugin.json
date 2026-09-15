@@ -2,7 +2,7 @@
   "id": "opentweet",
   "name": "OpenTweet",
   "description": "Schedule and publish X, Bluesky and LinkedIn posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "icon": "https://opentweet.io/logo_transparent_black.png",
   "activation": {
     "onStartup": true

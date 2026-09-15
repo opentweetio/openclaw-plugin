@@ -1,6 +1,6 @@
 {
   "name": "@opentweetio/openclaw-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Schedule and publish X posts, threads and articles from OpenClaw using OpenTweet.",
   "type": "module",
   "license": "MIT",
