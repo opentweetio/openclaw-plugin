@@ -1,6 +1,6 @@
 # OpenTweet plugin for OpenClaw
 
-Schedule and publish X and Bluesky posts, threads and long-form articles from OpenClaw, using your [OpenTweet](https://opentweet.io) account.
+Schedule and publish X, Bluesky and LinkedIn posts, threads and long-form articles from OpenClaw, using your [OpenTweet](https://opentweet.io) account.
 
 ## Install
 
@@ -35,7 +35,7 @@ Create an API key at [opentweet.io/dashboard/api-keys](https://opentweet.io/dash
 | --- | --- |
 | `opentweet_accounts` | Connected X accounts, subscription status, remaining daily quota |
 | `opentweet_list_platforms` | Connected networks, the auto cross-post setting, and what an unspecified post targets |
-| `opentweet_post` | Create a post or thread on X, Bluesky or both: draft, schedule, or publish now |
+| `opentweet_post` | Create a post or thread on X, Bluesky, LinkedIn or any combination: draft, schedule, or publish now |
 | `opentweet_list_posts` | List drafts, scheduled, published or failed posts |
 | `opentweet_update_post` | Edit, reschedule, publish or delete an existing post |
 | `opentweet_upload_media` | Upload an image or video and get a media URL |
@@ -48,7 +48,7 @@ Multi-account users should call `opentweet_accounts` first and pass the resultin
 
 ### Cross-posting
 
-`opentweet_post` takes a `platforms` array. Pass `["x", "bluesky"]` to publish the same content to both networks in one call, or `["bluesky"]` for Bluesky only. An explicit list is always honoured exactly.
+`opentweet_post` takes a `platforms` array. Pass `["x", "bluesky", "linkedin"]` to publish the same content to all three networks in one call, or any subset such as `["bluesky"]` for Bluesky only or `["x", "linkedin"]`. An explicit list is always honoured exactly.
 
 Leaving `platforms` out is not the same as pinning the post to X. An unspecified post follows the account's auto cross-post setting, which sends it to every connected network when that setting is on. Call `opentweet_list_platforms` to see what an unspecified post would target.
 
@@ -61,6 +61,8 @@ Every post comes back with a `results` array carrying one entry per network: `pu
 - `opentweet_search_inspiration` and `opentweet_repurpose_tweet` consume the daily search and AI generation quotas on your OpenTweet plan.
 - Publishing an article to X requires an X Premium subscription on the connected account.
 - Bluesky caps posts at 300 characters. Text that fits X can come back as a `failed` Bluesky entry while X publishes fine.
+- LinkedIn posts go to your personal profile only (no Company Pages) and allow 3,000 characters, where an emoji counts as 2. A thread goes to LinkedIn as one post with the parts joined by a blank line. Video is not supported, so a post with video comes back as a `skipped` LinkedIn entry with a `skip_reason`. Hashtags and mentions publish as plain text, and there are no LinkedIn analytics.
+- Connect LinkedIn in the OpenTweet dashboard under Settings > Accounts > Connect LinkedIn. The sign-in lasts 60 days, then needs a one-click reconnect. Until then `opentweet_list_platforms` shows LinkedIn as `usable: false` with `needs_reconnect: true`.
 
 ## Develop
 

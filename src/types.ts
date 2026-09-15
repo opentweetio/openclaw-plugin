@@ -13,7 +13,7 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export type PlatformId = 'x' | 'bluesky';
+export type PlatformId = 'x' | 'bluesky' | 'linkedin';
 
 /** Per-network outcome of a publish. `skipped` is not a failure. */
 export interface PostResult {

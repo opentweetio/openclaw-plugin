@@ -175,7 +175,7 @@ export default defineToolPlugin({
   id: 'opentweet',
   name: 'OpenTweet',
   description:
-    'Schedule and publish X and Bluesky posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.',
+    'Schedule and publish X, Bluesky and LinkedIn posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.',
   configSchema,
   tools: (tool) => [
     tool({
@@ -318,7 +318,7 @@ export default defineToolPlugin({
       name: 'opentweet_post',
       label: 'OpenTweet Post',
       description:
-        'Create a single post or a thread. Publishes immediately when publish_now is true, schedules it when scheduled_date is set, and otherwise saves a draft. Pass thread_tweets to create a thread, where text is the first tweet. Use platforms to cross-post the same content to X and Bluesky in one call. Omitting platforms hands targeting to the account auto cross-post setting rather than pinning the post to X, so call opentweet_list_platforms first when that matters.',
+        'Create a single post or a thread. Publishes immediately when publish_now is true, schedules it when scheduled_date is set, and otherwise saves a draft. Pass thread_tweets to create a thread, where text is the first tweet. Use platforms to cross-post the same content to X, Bluesky and LinkedIn in one call. LinkedIn receives a thread as one post with the parts joined by a blank line, and skips a post that has video. Omitting platforms hands targeting to the account auto cross-post setting rather than pinning the post to X, so call opentweet_list_platforms first when that matters.',
       parameters: Type.Object({
         text: Type.String({ description: 'The post text, or the first tweet of a thread.' }),
         thread_tweets: Type.Optional(
@@ -342,9 +342,9 @@ export default defineToolPlugin({
           Type.String({ description: 'Target X account id from opentweet_accounts, for multi-account users.' })
         ),
         platforms: Type.Optional(
-          Type.Array(Type.Union([Type.Literal('x'), Type.Literal('bluesky')]), {
+          Type.Array(Type.Union([Type.Literal('x'), Type.Literal('bluesky'), Type.Literal('linkedin')]), {
             description:
-              'Networks to post to. Pass ["x", "bluesky"] to publish the same content to both in one call, or any non-empty subset such as ["bluesky"]. An explicit list is always honoured exactly. Leaving this out is not the same as pinning to X: the post then follows the account auto cross-post setting, which sends it to every connected network when that setting is on. A network the user has not connected comes back as skipped rather than failing the call.',
+              'Networks to post to. Pass ["x", "bluesky", "linkedin"] to publish the same content to all three in one call, or any non-empty subset such as ["bluesky"] or ["x", "linkedin"]. An explicit list is always honoured exactly. Leaving this out is not the same as pinning to X: the post then follows the account auto cross-post setting, which sends it to every connected network when that setting is on. A network the user has not connected comes back as skipped rather than failing the call.',
           })
         ),
       }),
