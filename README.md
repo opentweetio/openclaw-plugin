@@ -12,7 +12,7 @@ openclaw gateway restart
 
 ## Configure
 
-Create an API key at [opentweet.io/dashboard/api-keys](https://opentweet.io/dashboard/api-keys), then add it to `openclaw.json`:
+Create an API key at [opentweet.io/developer](https://opentweet.io/developer), then add it to `openclaw.json`:
 
 ```json5
 {

@@ -10,7 +10,7 @@ const DEFAULT_BASE_URL = 'https://opentweet.io';
 const configSchema = Type.Object(
   {
     apiKey: Type.String({
-      description: 'OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys',
+      description: 'OpenTweet API key. Create one at https://opentweet.io/developer',
     }),
     baseUrl: Type.Optional(
       Type.String({

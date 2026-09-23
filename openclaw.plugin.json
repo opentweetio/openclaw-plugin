@@ -2,7 +2,7 @@
   "id": "opentweet",
   "name": "OpenTweet",
   "description": "Schedule and publish X, Bluesky and LinkedIn posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "icon": "https://opentweet.io/logo_transparent_black.png",
   "activation": {
     "onStartup": true
@@ -15,7 +15,7 @@
     "properties": {
       "apiKey": {
         "type": "string",
-        "description": "OpenTweet API key. Create one at https://opentweet.io/dashboard/api-keys"
+        "description": "OpenTweet API key. Create one at https://opentweet.io/developer"
       },
       "baseUrl": {
         "type": "string",
