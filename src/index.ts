@@ -891,5 +891,149 @@ export default defineToolPlugin({
         };
       },
     }),
+
+    tool({
+      name: 'opentweet_import_csv',
+      label: 'OpenTweet Import CSV',
+      description:
+        'Turn each row of a CSV into a post using an AI prompt, saved as drafts unless schedule is set. Accepts CSV text or a local file path, at most 50 data rows, 30 columns and 1MB. Split bigger files into several calls and repeat the header row in each. Every started block of 25 rows counts against the account daily AI generation quota. Scheduled posts publish automatically, so confirm with the user before passing schedule.',
+      parameters: Type.Object({
+        prompt: Type.String({
+          minLength: 3,
+          maxLength: 2000,
+          description: 'How to turn each row into a post, for example "Announce the event, mention the city and date".',
+        }),
+        csv: Type.Optional(Type.String({ description: 'CSV text including the header row. Use this or file_path.' })),
+        file_path: Type.Optional(
+          Type.String({ description: 'Absolute path to a local .csv file. Use this or csv.' })
+        ),
+        schedule: Type.Optional(
+          Type.Union(
+            [
+              Type.Boolean(),
+              Type.Object(
+                {
+                  date_column: Type.String({ description: 'Header of the column holding the date, or date and time.' }),
+                  time_column: Type.Optional(Type.String({ description: 'Header of a separate time column.' })),
+                  order: Type.Optional(
+                    Type.Union([Type.Literal('dmy'), Type.Literal('mdy')], {
+                      description: 'Day and month order for dates like 03/04/2027.',
+                    })
+                  ),
+                },
+                { additionalProperties: false }
+              ),
+            ],
+            {
+              description:
+                'Schedule each post from a date in its row. true detects the date column, or pass the columns. Rows dated in the past or unreadable stay drafts. Omit to save everything as drafts.',
+            }
+          )
+        ),
+        timezone: Type.Optional(
+          Type.String({
+            description: 'IANA timezone for the row dates, for example "Europe/Belgrade". Defaults to the account timezone, else UTC.',
+          })
+        ),
+        group_name: Type.Optional(Type.String({ description: 'Name for the group the imported posts are saved in.' })),
+        x_account_id: Type.Optional(Type.String()),
+      }),
+      outputSchema: Type.Object(
+        {
+          group_id: Type.String(),
+          count: Type.Number(),
+          posts: Type.Array(
+            Type.Object(
+              {
+                id: Type.String(),
+                status: Type.String(),
+                scheduled_date: Type.Optional(Type.String()),
+                row: Type.Optional(Type.Number()),
+                text: Type.String(),
+                media_urls: Type.Array(Type.String()),
+                too_long: Type.Boolean(),
+                has_link: Type.Boolean(),
+              },
+              { additionalProperties: false }
+            )
+          ),
+          skipped_rows: Type.Array(Type.Number()),
+          failed_rows: Type.Array(Type.Number()),
+          char_limit: Type.Number(),
+          generations_remaining: Type.Optional(Type.Number()),
+          schedule: Type.Optional(
+            Type.Object(
+              {
+                date_column: Type.String(),
+                time_column: Type.Optional(Type.String()),
+                order: Type.String(),
+                timezone: Type.String(),
+                scheduled: Type.Number(),
+                past_rows: Type.Array(Type.Number()),
+                invalid_rows: Type.Array(Type.Number()),
+                no_time_rows: Type.Array(Type.Number()),
+                empty_rows: Type.Array(Type.Number()),
+              },
+              { additionalProperties: false }
+            )
+          ),
+        },
+        { additionalProperties: false }
+      ),
+      async execute(params, config: Config, context) {
+        context.signal?.throwIfAborted();
+        const client = createClient(config);
+
+        if (Boolean(params.csv) === Boolean(params.file_path)) {
+          throw new Error('Provide exactly one of csv or file_path.');
+        }
+
+        const csv = params.file_path ? await readFile(params.file_path, 'utf8') : (params.csv as string);
+
+        const result = await client.importCsv(
+          {
+            csv,
+            prompt: params.prompt,
+            x_account_id: params.x_account_id,
+            group_name: params.group_name,
+            schedule: params.schedule === true ? true : params.schedule || undefined,
+            timezone: params.timezone,
+          },
+          context.signal
+        );
+
+        return {
+          group_id: result.group_id,
+          count: result.count,
+          posts: (result.drafts ?? []).map((draft) => ({
+            id: draft.id,
+            status: draft.status,
+            scheduled_date: draft.scheduled_date ?? undefined,
+            row: draft.row ?? undefined,
+            text: draft.text,
+            media_urls: draft.media_urls ?? [],
+            too_long: Boolean(draft.too_long),
+            has_link: Boolean(draft.has_link),
+          })),
+          skipped_rows: result.skipped_rows ?? [],
+          failed_rows: result.failed_rows ?? [],
+          char_limit: result.char_limit,
+          generations_remaining: result.usage?.ai_generations_remaining,
+          schedule: result.schedule
+            ? {
+                date_column: result.schedule.date_column,
+                time_column: result.schedule.time_column ?? undefined,
+                order: result.schedule.order,
+                timezone: result.schedule.timezone,
+                scheduled: result.schedule.scheduled,
+                past_rows: result.schedule.past_rows ?? [],
+                invalid_rows: result.schedule.invalid_rows ?? [],
+                no_time_rows: result.schedule.no_time_rows ?? [],
+                empty_rows: result.schedule.empty_rows ?? [],
+              }
+            : undefined,
+        };
+      },
+    }),
   ],
 });

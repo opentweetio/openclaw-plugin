@@ -2,6 +2,8 @@ import type {
   AccountStatus,
   AnalyticsOverview,
   Article,
+  CsvImportResponse,
+  CsvImportScheduleOptions,
   RawPlatformsStatus,
   OpenTweetConfig,
   PaginatedResponse,
@@ -272,6 +274,27 @@ export class OpenTweetClient {
     return this.request<Record<string, unknown>>(
       'POST',
       '/inspiration/repurpose',
+      data as unknown as Record<string, unknown>,
+      signal
+    );
+  }
+
+  // CSV import
+
+  async importCsv(
+    data: {
+      csv: string;
+      prompt: string;
+      x_account_id?: string;
+      group_name?: string;
+      schedule?: true | CsvImportScheduleOptions;
+      timezone?: string;
+    },
+    signal?: AbortSignal
+  ): Promise<CsvImportResponse> {
+    return this.request<CsvImportResponse>(
+      'POST',
+      '/posts/import-csv',
       data as unknown as Record<string, unknown>,
       signal
     );

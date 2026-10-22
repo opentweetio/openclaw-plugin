@@ -2,7 +2,7 @@
   "id": "opentweet",
   "name": "OpenTweet",
   "description": "Schedule and publish X, Bluesky and LinkedIn posts, threads and long-form articles, upload media, read analytics, and find content inspiration through OpenTweet.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "icon": "https://opentweet.io/logo_transparent_black.png",
   "activation": {
     "onStartup": true
@@ -46,7 +46,8 @@
       "opentweet_analytics",
       "opentweet_article",
       "opentweet_search_inspiration",
-      "opentweet_repurpose_tweet"
+      "opentweet_repurpose_tweet",
+      "opentweet_import_csv"
     ]
   }
 }

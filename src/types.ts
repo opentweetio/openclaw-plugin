@@ -234,3 +234,46 @@ export interface InspirationTweet {
   };
   created_at: string;
 }
+
+export interface CsvImportScheduleOptions {
+  date_column: string;
+  time_column?: string;
+  order?: 'dmy' | 'mdy';
+}
+
+export interface CsvImportDraft {
+  id: string;
+  status: 'draft' | 'scheduled';
+  scheduled_date: string | null;
+  row: number | null;
+  text: string;
+  media_urls: string[];
+  too_long: boolean;
+  has_link: boolean;
+}
+
+export interface CsvImportResponse {
+  success: boolean;
+  group_id: string;
+  count: number;
+  drafts: CsvImportDraft[];
+  skipped_rows: number[];
+  failed_rows: number[];
+  char_limit: number;
+  usage: {
+    ai_generations_used: number;
+    ai_generations_remaining: number;
+    daily_limit: number;
+  };
+  schedule?: {
+    date_column: string;
+    time_column: string | null;
+    order: 'dmy' | 'mdy';
+    timezone: string;
+    scheduled: number;
+    past_rows: number[];
+    invalid_rows: number[];
+    no_time_rows: number[];
+    empty_rows: number[];
+  };
+}

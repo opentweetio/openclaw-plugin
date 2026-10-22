@@ -43,6 +43,7 @@ Create an API key at [opentweet.io/developer](https://opentweet.io/developer), t
 | `opentweet_article` | Create, update, publish or delete long-form X articles |
 | `opentweet_search_inspiration` | Search X for high performing posts on a topic |
 | `opentweet_repurpose_tweet` | Rewrite a post in your voice and save it as a draft |
+| `opentweet_import_csv` | Turn each row of a CSV into a post with an AI prompt, as drafts or scheduled from a date column |
 
 Multi-account users should call `opentweet_accounts` first and pass the resulting `x_account_id` to the other tools.
 
@@ -58,7 +59,7 @@ Every post comes back with a `results` array carrying one entry per network: `pu
 
 ## Notes
 
-- `opentweet_search_inspiration` and `opentweet_repurpose_tweet` consume the daily search and AI generation quotas on your OpenTweet plan.
+- `opentweet_search_inspiration`, `opentweet_repurpose_tweet` and `opentweet_import_csv` consume the daily search and AI generation quotas on your OpenTweet plan.
 - Publishing an article to X requires an X Premium subscription on the connected account.
 - Bluesky caps posts at 300 characters. Text that fits X can come back as a `failed` Bluesky entry while X publishes fine.
 - LinkedIn posts go to your personal profile only (no Company Pages) and allow 3,000 characters, where an emoji counts as 2. A thread goes to LinkedIn as one post with the parts joined by a blank line. Video is not supported, so a post with video comes back as a `skipped` LinkedIn entry with a `skip_reason`. Hashtags and mentions publish as plain text, and there are no LinkedIn analytics.
